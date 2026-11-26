@@ -1,0 +1,21 @@
+{
+  "short_name": "Remindable",
+  "name": "Remindable — mind training",
+  "icons": [
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#1F5F5B",
+  "background_color": "#FBF7F0"
+}

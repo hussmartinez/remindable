@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Remindable",
+    "slug": "remindable",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "xyz.hussmartinez.remindable"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "xyz.hussmartinez.remindable"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Remindable",
+      "shortName": "Remindable",
+      "themeColor": "#1F5F5B",
+      "backgroundColor": "#FBF7F0"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-localization",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Remindable uses the microphone only while you press Say it or Listen, to turn your speech into text. Nothing is recorded or saved.",
+          "speechRecognitionPermission": "Remindable turns your speech into text to check a word you say or to show the last minutes of a conversation. Nothing is saved.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox",
+            "com.google.android.as",
+            "com.google.android.tts"
+          ]
+        }
+      ]
+    ],
+    "scheme": "remindable",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

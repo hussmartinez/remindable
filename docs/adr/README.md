@@ -13,3 +13,4 @@ Significant decisions, one per file, in the format *Context → Decision → Con
 | [0007](0007-speech-with-tap-fallback.md) | Speech recognition with a tap-based fallback everywhere | Accepted |
 | [0008](0008-emoji-as-picture-set.md) | Use emoji (Unicode ≤ 11) as the picture set | Accepted |
 | [0009](0009-use-the-family-sdks.md) | Schedule and grade with learn-sdk | Accepted |
+| [0010](0010-ui-native-components.md) | Draw controls with ui/native | Accepted |

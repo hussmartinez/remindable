@@ -20,12 +20,12 @@ await page.goto(`${process.env.APP_URL ?? 'http://localhost:8091'}${path}`, { wa
 await page.waitForTimeout(1500);
 for (const a of actions) {
   if (a.startsWith('wait:')) { await page.waitForTimeout(Number(a.slice(5))); continue; }
-  if (a.startsWith('#')) await page.locator('[role="button"]:visible').nth(Number(a.slice(1))).click();
-  else await page.locator(`[role="button"][aria-label="${a}"]:visible`).first().click();
+  if (a.startsWith('#')) await page.locator(':is([role="button"],[role="radio"]):visible').nth(Number(a.slice(1))).click();
+  else await page.locator(`:is([role="button"],[role="radio"])[aria-label="${a}"]:visible`).first().click();
   await page.waitForTimeout(400);
 }
 await page.screenshot({ path: out, fullPage: true });
-const labels = await page.$$eval('[role="button"]', (els) =>
+const labels = await page.$$eval(':is([role="button"],[role="radio"])', (els) =>
   els.filter((e) => e.offsetParent !== null).map((e) => e.getAttribute('aria-label') || e.textContent || ''));
 console.log('buttons:', JSON.stringify(labels));
 console.log('errors:', JSON.stringify(errors));

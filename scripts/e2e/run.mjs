@@ -21,9 +21,9 @@ await page.addInitScript(() => {
 let shot = 0;
 const snap = async (name) => page.screenshot({ path: `${out}/${String(++shot).padStart(2, '0')}-${name}.png`, fullPage: true });
 const buttons = async () =>
-  page.$$eval('[role="button"]', (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.getAttribute('aria-label') || e.textContent || ''));
-const click = async (label) => page.locator(`[role="button"][aria-label="${label}"]:visible`).first().click();
-const clickAt = async (i) => page.locator('[role="button"]:visible').nth(i).click();
+  page.$$eval(':is([role="button"],[role="radio"])', (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.getAttribute('aria-label') || e.textContent || ''));
+const click = async (label) => page.locator(`:is([role="button"],[role="radio"])[aria-label="${label}"]:visible`).first().click();
+const clickAt = async (i) => page.locator(':is([role="button"],[role="radio"]):visible').nth(i).click();
 
 await page.goto(process.env.APP_URL ?? 'http://localhost:8091', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1500);
@@ -52,7 +52,7 @@ for (let i = 0; i < 200; i++) {
 
   // Quick Eye: center choice then location circle
   if (b.includes('🚗') && b.includes('🚚')) { await click('🚗'); continue; }
-  const circles = await page.$$('[role="button"]:not([aria-label]):visible');
+  const circles = await page.$$(':is([role="button"],[role="radio"]):not([aria-label]):visible');
   if (/Tap the spot|Toca el sitio|المس المكان/.test(text) && circles.length) { await circles[0].click(); continue; }
 
   const prefer = ['I know it', 'Lo sé', 'أعرفه', 'Yes, I got it', 'Sí, lo he dicho', 'نعم، قلتها', 'Got it', 'Entendido', 'فهمت',

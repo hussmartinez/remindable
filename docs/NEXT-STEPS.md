@@ -32,6 +32,7 @@ _Status as of 2026-10-28._ This is everything that is planned, partly done or st
   - continuous mode on iOS (results may accumulate)
   - Android ≤ 12, where continuous mode is unsupported
 - [ ] **learn-sdk on Hermes:** open `/dev/conformance` on an iPhone and an Android phone (development build). Every case should pass; report failures to the SDK family reviewer. sdk-core ADR 0069 keeps the native entries experimental until this check and a VoiceOver/TalkBack pass are done.
+- [ ] **VoiceOver and TalkBack pass** over onboarding, a full session and settings. Check that answers read as radio buttons with "correct answer" or "your answer" after a pick, that results are announced, and that text size 1.4× still fits. Report ui/native findings to the SDK family reviewer.
 - [ ] **TTS voices** on each device (expo-speech), especially Arabic.
 - [ ] **Quick Eye** display timing at short durations (<100 ms) on low-end phones.
 - [ ] **Text size** settings at 1.4× on small phones and tablets.

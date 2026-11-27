@@ -10,6 +10,8 @@
   "bugs": "https://github.com/hussmartinez/remindable/issues",
   "main": "expo-router/entry",
   "dependencies": {
+    "@hussmartinez/learn-sdk": "0.4.6",
+    "@hussmartinez/ui": "0.17.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.34",
     "expo-constants": "~57.0.21",
@@ -52,6 +54,9 @@
   },
   "private": true,
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|native-base|react-native-svg|@hussmartinez/.*|ts-fsrs)"
+    ]
   }
 }

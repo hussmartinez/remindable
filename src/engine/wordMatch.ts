@@ -1,5 +1,12 @@
 import type { Lang } from '@/lib/lang';
-import { ARTICLES, normalizedDistance, stem, tokenize } from './textNorm';
+import {
+  arabicProfile,
+  englishProfile,
+  matchTolerantly,
+  spanishProfile,
+  type LanguageProfile,
+} from '@hussmartinez/learn-sdk';
+
 
 /**
  * Forgiving comparison between what the speech recogniser heard and the
@@ -8,9 +15,6 @@ import { ARTICLES, normalizedDistance, stem, tokenize } from './textNorm';
  * mishears one sound. All of that should still count. Only the word itself
  * matters, never pronunciation quality.
  */
-
-/** Largest normalised edit distance still accepted. 0.25 = one slip in four letters; short words must be exact. */
-export const MAX_DISTANCE = 0.25;
 
 /**
  * Everyday or regional synonyms that should also count, by concept id.
@@ -35,35 +39,12 @@ export function targetsFor(conceptId: string, word: string, lang: Lang): string[
   return [word, ...(ALIASES[conceptId]?.[lang] ?? [])];
 }
 
-/** Normalised, article-free, stemmed tokens. */
-export function matchKey(text: string, lang: Lang): string[] {
-  return tokenize(text)
-    .filter((t) => !ARTICLES[lang].includes(t))
-    .map((t) => stem(t, lang))
-    .filter(Boolean);
-}
-
-/** Arabic feminine ة/ه is often dropped or added (قطة / قط), so compare both forms. */
-function variants(s: string, lang: Lang): string[] {
-  return lang === 'ar' && s.length > 2 && s.endsWith('ه') ? [s, s.slice(0, -1)] : [s];
-}
-
-/** Best distance between `target` and any run of words in `heard` (windows of n-1..n+1 words, spaces ignored). */
-export function bestDistance(heard: string, target: string, lang: Lang): number {
-  const t = matchKey(target, lang);
-  const h = matchKey(heard, lang);
-  if (!t.length || !h.length) return 1;
-  const targetForms = variants(t.join(''), lang);
-  let best = 1;
-  for (let size = Math.max(1, t.length - 1); size <= t.length + 1; size++) {
-    for (let i = 0; i + size <= h.length; i++) {
-      for (const w of variants(h.slice(i, i + size).join(''), lang)) {
-        for (const tf of targetForms) best = Math.min(best, normalizedDistance(w, tf));
-      }
-    }
-  }
-  return best;
-}
+/** learn-sdk's built-in profiles: normalisation, articles and plural stems per language. */
+export const PROFILES: Record<Lang, LanguageProfile> = {
+  es: spanishProfile,
+  en: englishProfile,
+  ar: arabicProfile,
+};
 
 export type MatchResult = { match: boolean; distance: number };
 
@@ -71,14 +52,9 @@ export type MatchResult = { match: boolean; distance: number };
  * Does any recogniser alternative contain one of the `targets`?
  * `others` are the other words on screen: if what was heard is clearly closer to
  * one of them, it is not counted as the target ("cat" must not pass for "car").
+ * Matching is learn-sdk's `matchTolerantly`; Remindable only adds its synonym lists.
  */
 export function matchSpoken(heard: string[], targets: string[], lang: Lang, others: string[] = []): MatchResult {
-  let distance = 1;
-  let rival = 1;
-  for (const h of heard) {
-    for (const t of targets) distance = Math.min(distance, bestDistance(h, t, lang));
-    for (const o of others) rival = Math.min(rival, bestDistance(h, o, lang));
-  }
-  const match = distance <= MAX_DISTANCE && !(rival < distance);
-  return { match, distance };
+  if (heard.every((h) => !h.trim())) return { match: false, distance: 1 };
+  return matchTolerantly(heard, targets, { profile: PROFILES[lang], others });
 }

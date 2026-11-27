@@ -31,6 +31,7 @@ _Status as of 2026-10-28._ This is everything that is planned, partly done or st
   - on-device versus network fallback
   - continuous mode on iOS (results may accumulate)
   - Android ≤ 12, where continuous mode is unsupported
+- [ ] **learn-sdk on Hermes:** open `/dev/conformance` on an iPhone and an Android phone (development build). Every case should pass; report failures to the SDK family reviewer. sdk-core ADR 0069 keeps the native entries experimental until this check and a VoiceOver/TalkBack pass are done.
 - [ ] **TTS voices** on each device (expo-speech), especially Arabic.
 - [ ] **Quick Eye** display timing at short durations (<100 ms) on low-end phones.
 - [ ] **Text size** settings at 1.4× on small phones and tablets.
@@ -55,7 +56,7 @@ _Status as of 2026-10-28._ This is everything that is planned, partly done or st
 - [ ] **"Where were we?"** recap is keyword-based. Consider an optional on-device or online summary, with consent.
 - [ ] **Eastern Arabic digits** (٠١٢٣) setting for Arabic, used in Pattern Path, Pill Box and Logic Corner.
 - [ ] **Pill Box scheduling:** `pillBox` is marked `planning`, so it never hosts the intention emoji. Check whether it shows up often enough in Rebuild.
-- [ ] **Move to ts-fsrs:** `src/engine/srs.ts` uses simple expanding intervals. Replace with ts-fsrs (MIT) for per-user forgetting curves.
+- [x] **FSRS scheduling** through learn-sdk (ADR 0009).
 
 ## 4. New exercises (from docs/EXERCISE-CATALOG.md)
 

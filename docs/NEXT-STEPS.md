@@ -5,7 +5,7 @@ _Status as of 2026-10-28._ This is everything that is planned, partly done or st
 ## 0. Repository housekeeping
 
 - [x] Moved to the new server, first commit made, published as open source (MIT).
-- [ ] **Expo patch updates.** expo-doctor reports 4 packages out of date (expo, expo-constants, expo-linking, expo-router). Run `npx expo install --fix` in its own PR.
+- [x] **Expo patch updates** (expo, expo-constants, expo-linking, expo-router), applied 2026-11-27.
 - [ ] **Branding.** The app icon, splash screen and `public/logo*.png` are still Expo placeholders. Bundle ids are `xyz.hussmartinez.remindable`.
 - [ ] **EAS.** There is no `eas.json` yet. Run `npx eas-cli@latest build:configure` and add a development profile, which the speech features need.
 - [ ] **README screenshots.** Use `scripts/e2e/` to generate them.

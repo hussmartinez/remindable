@@ -1,15 +1,21 @@
 import type { ReactNode } from 'react';
+import {
+  Button as UiButton,
+  Dir as UiDir,
+  NoFlip,
+  Text as UiText,
+  useTextScale,
+  type ButtonVariant,
+} from '@hussmartinez/ui/native';
 import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
-import { isRTL, type Lang } from '@/lib/lang';
+import type { Lang } from '@/lib/lang';
 import { useSpeak } from '@/lib/speech';
 import { colors, fontBase, minTap, radius, space } from '@/lib/theme';
-import { useStore } from '@/state/store';
 
-export function useTextScale() {
-  return useStore((s) => s.settings.textScale);
-}
+/** The text scale from `NativeUiProvider` (set from the user's text-size setting in the root layout). */
+export { useTextScale };
 
 type TxtProps = {
   children: ReactNode;
@@ -20,33 +26,31 @@ type TxtProps = {
   style?: StyleProp<TextStyle>;
 };
 
+/** ui's `Text`, plus a `huge` size for single big words and numbers, which ui has no token for. */
 export function Txt({ children, variant = 'body', color = colors.ink, bold, center, style }: TxtProps) {
   const scale = useTextScale();
-  const size = fontBase[variant] * scale;
+  const huge = variant === 'huge' && { fontSize: fontBase.huge * scale, lineHeight: fontBase.huge * scale * 1.2 };
   return (
-    <Text
-      style={[
-        { fontSize: size, lineHeight: size * 1.35, color, fontWeight: bold || variant === 'title' ? '700' : '400' },
-        center && { textAlign: 'center' },
-        style,
-      ]}>
+    <UiText variant={variant === 'huge' ? 'body' : variant} color={color} strong={bold} style={[center && { textAlign: 'center' }, huge, style]}>
       {children}
-    </Text>
+    </UiText>
   );
 }
 
 /** Sets layout direction for a subtree from the language its content is written in. */
 export function Dir({ lang, children, style }: { lang: Lang; children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ direction: isRTL(lang) ? 'rtl' : 'ltr' }, style]}>{children}</View>;
+  return (
+    <UiDir locale={lang} style={style}>
+      {children}
+    </UiDir>
+  );
 }
 
 /**
  * Keeps physical layouts (arrows, maps, grids with fixed positions) unmirrored in RTL.
  * Use Dir instead for content whose order follows reading direction.
  */
-export function NoFlip({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ direction: 'ltr' }, style]}>{children}</View>;
-}
+export { NoFlip };
 
 export function Screen({ children, scroll = true, edges = ['top', 'bottom', 'left', 'right'] }: { children: ReactNode; scroll?: boolean; edges?: Edge[] }) {
   const body = <View style={styles.column}>{children}</View>;
@@ -69,41 +73,40 @@ type ButtonProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-const toneStyles: Record<ButtonTone, { bg: string; fg: string; border: string }> = {
-  primary: { bg: colors.primary, fg: colors.primaryInk, border: colors.primary },
-  secondary: { bg: colors.card, fg: colors.primary, border: colors.primary },
-  quiet: { bg: 'transparent', fg: colors.inkSoft, border: 'transparent' },
-  good: { bg: colors.goodSoft, fg: colors.good, border: colors.good },
-  hint: { bg: colors.hintSoft, fg: colors.hint, border: colors.hint },
-  selected: { bg: colors.accentSoft, fg: colors.ink, border: colors.accent },
+const VARIANT: Record<ButtonTone, ButtonVariant> = {
+  primary: 'primary',
+  secondary: 'secondary',
+  quiet: 'quiet',
+  good: 'success',
+  hint: 'hint',
+  selected: 'selected',
 };
 
+/** ui's large (64 dp) `Button`, with an emoji and an optional second line. */
 export function BigButton({ label, onPress, tone = 'primary', icon, sublabel, disabled, style }: ButtonProps) {
   const scale = useTextScale();
-  const t = toneStyles[tone];
   return (
-    <Pressable
-      accessibilityRole="button"
+    <UiButton
+      variant={VARIANT[tone]}
+      size="large"
       accessibilityLabel={sublabel ? `${label}. ${sublabel}` : label}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        { minHeight: minTap * scale, backgroundColor: t.bg, borderColor: t.border, opacity: disabled ? 0.45 : pressed ? 0.8 : 1 },
-        style,
-      ]}>
-      {icon ? <Text style={{ fontSize: 34 * scale }}>{icon}</Text> : null}
-      <View style={{ flexShrink: 1, alignItems: icon || sublabel ? 'flex-start' : 'center', flexGrow: 1 }}>
-        <Txt color={t.fg} bold>
-          {label}
-        </Txt>
-        {sublabel ? (
-          <Txt variant="small" color={tone === 'primary' ? colors.primaryInk : colors.inkSoft}>
+      icon={icon ? <Text style={{ fontSize: 34 * scale }}>{icon}</Text> : undefined}
+      style={[styles.button, style]}>
+      {sublabel ? (
+        <View style={{ flexShrink: 1 }}>
+          <UiText strong color={tone === 'primary' ? colors.primaryInk : undefined}>
+            {label}
+          </UiText>
+          <UiText variant="small" color={tone === 'primary' ? colors.primaryInk : colors.inkSoft}>
             {sublabel}
-          </Txt>
-        ) : null}
-      </View>
-    </Pressable>
+          </UiText>
+        </View>
+      ) : (
+        label
+      )}
+    </UiButton>
   );
 }
 
@@ -128,7 +131,7 @@ export function Card({ children, style }: { children: ReactNode; style?: StylePr
 export function Emoji({ children, size = 96 }: { children: string; size?: number }) {
   const scale = useTextScale();
   return (
-    <Text accessibilityElementsHidden importantForAccessibility="no" style={{ fontSize: size * Math.min(scale, 1.2), textAlign: 'center' }}>
+    <Text aria-hidden style={{ fontSize: size * Math.min(scale, 1.2), textAlign: 'center' }}>
       {children}
     </Text>
   );
@@ -146,16 +149,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { flexGrow: 1, padding: space.md, alignItems: 'center' },
   column: { width: '100%', maxWidth: 640, flexGrow: 1 },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    borderRadius: radius.lg,
-    borderWidth: 2,
-    marginVertical: space.xs,
-  },
+  button: { marginVertical: space.xs },
   speak: {
     borderRadius: radius.pill,
     backgroundColor: colors.card,

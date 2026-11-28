@@ -1,6 +1,8 @@
 export const en = {
   langs: { es: 'Spanish', en: 'English', ar: 'Arabic' },
   common: {
+    correctAnswer: 'correct answer',
+    yourAnswer: 'your answer',
     continue: 'Continue',
     next: 'Next',
     done: 'Done',

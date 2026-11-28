@@ -1,3 +1,4 @@
+import { Dir, NativeUiProvider } from '@hussmartinez/ui/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -7,13 +8,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import i18n from '@/i18n';
 import { isRTL, type Lang } from '@/lib/lang';
-import { colors } from '@/lib/theme';
+import { colors, remindableTheme } from '@/lib/theme';
 import { useHydrated, useStore } from '@/state/store';
 
 export default function RootLayout() {
   const hydrated = useHydrated();
   const uiLang = useStore((s) => s.settings.uiLang);
   const onboarded = useStore((s) => s.onboarded);
+  const textScale = useStore((s) => s.settings.textScale);
 
   useEffect(() => {
     if (!hydrated || !onboarded) return;
@@ -43,10 +45,12 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      {/* Direction is applied by style rather than I18nManager so switching to Arabic needs no app restart. */}
-      <View style={{ flex: 1, direction: rtl ? 'rtl' : 'ltr', backgroundColor: colors.bg }}>
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'fade' }} />
-      </View>
+      {/* Theme and text size for ui/native. Direction follows the interface language without I18nManager, so switching to Arabic needs no restart (ADR 0003). */}
+      <NativeUiProvider theme={remindableTheme} colorMode="light" textScale={textScale}>
+        <Dir dir={rtl ? 'rtl' : 'ltr'} style={{ flex: 1, backgroundColor: colors.bg }}>
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'fade' }} />
+        </Dir>
+      </NativeUiProvider>
     </SafeAreaProvider>
   );
 }

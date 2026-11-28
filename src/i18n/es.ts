@@ -3,6 +3,8 @@ import type { Strings } from './en';
 export const es: Strings = {
   langs: { es: 'español', en: 'inglés', ar: 'árabe' },
   common: {
+    correctAnswer: 'respuesta correcta',
+    yourAnswer: 'tu respuesta',
     continue: 'Continuar',
     next: 'Siguiente',
     done: 'Hecho',

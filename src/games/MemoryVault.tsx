@@ -6,7 +6,7 @@ import { BigButton, Card, Dir, Emoji, Gap, Row, SpeakButton, Txt } from '@/compo
 import { MAX_LEVEL } from '@/engine/adaptive';
 import { dayKey } from '@/engine/dates';
 import { choicesWith, pick, shuffle } from '@/engine/random';
-import { dueItems, newReviewState, review, type ReviewState } from '@/engine/srs';
+import { dueCards, endOfDay, newCard, reviewCard, WELL_LEARNED_STREAK, type VaultCard } from '@/engine/srs';
 import { PEOPLE, SPOTS, THINGS, type VaultItem } from '@/content/vault';
 import { tIn } from '@/i18n';
 import type { Lang } from '@/lib/lang';
@@ -36,10 +36,10 @@ export function MemoryVault({ lang, mode, todaysItems = [], onLearned, onDone }:
 
   const plan = useMemo(() => {
     if (mode === 'later') return { steps: shuffle(todaysItems).map((item): CardStep => ({ type: 'recall', item, scheduled: false })), fresh: [] };
-    const due = dueItems(store.vaultReviews, today, 4)
-      .map((r) => store.vaultItems[r.id])
+    const due = dueCards(store.vaultCards, endOfDay(today), 4)
+      .map((c) => store.vaultItems[c.card.itemId])
       .filter(Boolean);
-    const fresh = createItems(newItemCount(store.settings.profile, store.levels.vault ?? 1), store.vaultItems, store.vaultReviews);
+    const fresh = createItems(newItemCount(store.settings.profile, store.levels.vault ?? 1), store.vaultItems, store.vaultCards);
     const steps: CardStep[] = [
       ...due.map((item): CardStep => ({ type: 'recall', item, scheduled: true })),
       ...fresh.map((item): CardStep => ({ type: 'study', item })),
@@ -52,13 +52,14 @@ export function MemoryVault({ lang, mode, todaysItems = [], onLearned, onDone }:
 
   const [index, setIndex] = useState(0);
   const score = useRef({ correct: 0, total: 0 });
-  const reviews = useRef<ReviewState[]>([]);
+  const reviewed = useRef<VaultCard[]>([]);
 
   const finish = () => {
-    if (mode === 'learn') {
-      useStore.getState().saveVault(plan.fresh, [...reviews.current, ...plan.fresh.map((i) => newReviewState(i.id, today))]);
-      onLearned?.(plan.fresh);
-    }
+    const now = Date.now();
+    // New items start as FSRS cards now; their first scheduled review is today's delayed recall (`later`).
+    const fresh = mode === 'learn' ? plan.fresh.map((i) => newCard(i.id, now)) : [];
+    useStore.getState().saveVault(plan.fresh, [...reviewed.current, ...fresh]);
+    if (mode === 'learn') onLearned?.(plan.fresh);
     onDone(score.current);
   };
 
@@ -75,9 +76,10 @@ export function MemoryVault({ lang, mode, todaysItems = [], onLearned, onDone }:
   const onAnswer = (correct: boolean) => {
     score.current.total += 1;
     if (correct) score.current.correct += 1;
-    if (step.type === 'recall' && step.scheduled) {
-      const prev = useStore.getState().vaultReviews[step.item.id];
-      if (prev) reviews.current.push(review(prev, correct, today));
+    // Scheduled reviews and today's delayed recall update FSRS; the immediate check after studying doesn't.
+    if (step.type === 'recall' && (step.scheduled || mode === 'later')) {
+      const prev = useStore.getState().vaultCards[step.item.id];
+      if (prev) reviewed.current.push(reviewCard(prev, correct, Date.now()));
     }
     advance();
   };
@@ -110,12 +112,12 @@ function newItemCount(profile: 'keepSharp' | 'rebuild', level: number) {
  * object's place is well learned it can be "moved" to a new spot, which keeps
  * the pool from running out and practises updating a memory.
  */
-function createItems(count: number, existing: Record<string, VaultItem>, reviews: Record<string, ReviewState>): VaultItem[] {
+function createItems(count: number, existing: Record<string, VaultItem>, cards: Record<string, VaultCard>): VaultItem[] {
   const people = shuffle(PEOPLE.filter((p) => !existing[`person:${p.id}`]));
   const things = shuffle(
     THINGS.filter((th) => {
       const id = `place:${th.id}`;
-      return !existing[id] || (reviews[id]?.stage ?? 0) >= 4;
+      return !existing[id] || (cards[id]?.streak ?? 0) >= WELL_LEARNED_STREAK;
     }),
   );
   const out: VaultItem[] = [];

@@ -5,7 +5,8 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { START_DISPLAY_MS, type Profile } from '@/engine/adaptive';
 import { dayKey } from '@/engine/dates';
-import type { ReviewState } from '@/engine/srs';
+import type { VaultCard } from '@/engine/srs';
+import { migrateState } from './migrations';
 import type { VaultItem } from '@/content/vault';
 import type { GameId } from '@/games/catalog';
 import type { Lang } from '@/lib/lang';
@@ -31,7 +32,7 @@ type State = {
   recentGames: GameId[][];
   quickEyeMs: number;
   vaultItems: Record<string, VaultItem>;
-  vaultReviews: Record<string, ReviewState>;
+  vaultCards: Record<string, VaultCard>;
   recentStories: string[];
 
   completeOnboarding: (s: Settings) => void;
@@ -39,7 +40,7 @@ type State = {
   setLevel: (game: string, level: number) => void;
   setGameData: (key: string, data: unknown) => void;
   setQuickEyeMs: (ms: number) => void;
-  saveVault: (items: VaultItem[], reviews: ReviewState[]) => void;
+  saveVault: (items: VaultItem[], cards: VaultCard[]) => void;
   markStory: (id: string) => void;
   finishSession: (games: GameId[]) => void;
   resetProgress: () => void;
@@ -61,7 +62,7 @@ const freshProgress = (profile: Profile) => ({
   recentGames: [] as GameId[][],
   quickEyeMs: START_DISPLAY_MS[profile],
   vaultItems: {} as Record<string, VaultItem>,
-  vaultReviews: {} as Record<string, ReviewState>,
+  vaultCards: {} as Record<string, VaultCard>,
   recentStories: [] as string[],
 });
 
@@ -83,12 +84,12 @@ export const useStore = create<State>()(
 
       setQuickEyeMs: (ms) => set({ quickEyeMs: ms }),
 
-      saveVault: (items, reviews) => {
+      saveVault: (items, cards) => {
         const vaultItems = { ...get().vaultItems };
-        const vaultReviews = { ...get().vaultReviews };
+        const vaultCards = { ...get().vaultCards };
         for (const item of items) vaultItems[item.id] = item;
-        for (const r of reviews) vaultReviews[r.id] = r;
-        set({ vaultItems, vaultReviews });
+        for (const c of cards) vaultCards[c.card.itemId] = c;
+        set({ vaultItems, vaultCards });
       },
 
       markStory: (id) => set({ recentStories: [id, ...get().recentStories.filter((s) => s !== id)].slice(0, 4) }),
@@ -108,12 +109,8 @@ export const useStore = create<State>()(
     {
       name: 'remindable',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
-      migrate: (persisted, version) => {
-        const state = persisted as Partial<State>;
-        if (version < 2) return { ...state, gameData: {}, recentGames: [] } as State;
-        return state as State;
-      },
+      version: 3,
+      migrate: (persisted, version) => migrateState(persisted as Record<string, unknown>, version) as unknown as State,
     },
   ),
 );

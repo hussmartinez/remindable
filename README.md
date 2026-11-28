@@ -97,6 +97,10 @@ RTL is applied with the `direction` style (root + per-content `Dir`, and `NoFlip
 
 Translations, device testing and new exercises are all welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.md) and the [security policy](SECURITY.md).
 
+## Third-party packages
+
+Scheduling and spoken-answer matching use [`@hussmartinez/learn-sdk`](https://www.npmjs.com/package/@hussmartinez/learn-sdk) (Apache-2.0), and its conformance vectors are in `src/dev/conformance/`. See [ADR 0009](docs/adr/0009-use-the-family-sdks.md).
+
 ## License
 
 [MIT](LICENSE) © 2026 Huss Martinez
